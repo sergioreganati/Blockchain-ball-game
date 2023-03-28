@@ -1,0 +1,74 @@
+body {
+  margin: 0svw;
+  padding: 0svh;
+  background-color: rgb(126, 124, 138);
+  font-family: sans-serif;
+  height: 100svh;
+  width: 100svw;
+  overflow: hidden;
+}
+
+.Title {
+  
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 1.5svh;
+  padding: 0.5svh;
+  background-color: rgb(126, 124, 138);
+  height: 5svh;
+}
+
+.Stats {
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: 1.8svh;
+  padding: 1svh;
+  background-color: rgb(78, 72, 112);
+  height: 5svh;
+}
+
+.Stats-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+  width: 25%;
+  border: 0.1svh solid rgb(126, 124, 138);
+  
+
+}
+.Mobile-controls {
+  isolation: isolate;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: 2svh;
+  padding: 1svh;
+  background-color: rgb(126, 124, 138);
+  height: 5svh;
+}
+button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(141, 29, 145);
+  border: 1px solid black;
+  color: rgb(255, 255, 255);
+  padding: 2svh;
+  font-size: 2svh;
+  margin: 1svh 1svw;
+  cursor: pointer;
+  border-radius: 0.5svh;
+}
+.control {
+  font-size: 4svh;
+  padding: 1svh;
+  width: 40%;
+  height: 10svh;
+}

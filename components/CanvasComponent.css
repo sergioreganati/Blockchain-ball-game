@@ -1,0 +1,25 @@
+.canvas-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1a2633;
+  
+    
+    width: 99svw;
+    height: 65svh;
+    margin: 0 ;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  canvas {
+    border: 1px solid #343a40;
+    width: 95%;
+    height: 95%;
+  }
+  .canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding-bottom: 66.67%; /* Aspect ratio: (height / width) * 100% */
+    overflow: hidden;
+  }
