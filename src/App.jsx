@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import CanvasComponent from '../components/CanvasComponent.jsx';
 import './App.css';
 
+function initializeGame() {
+  console.log('Initialize Game');
+}
+
 function App() {
+  let [isPaused, setIsPaused] = useState(false);
   let [leftPressed, setLeftPressed] = useState(false);
   let [rightPressed, setRightPressed] = useState(false);
+  
 
   function handleStart() {
     console.log('Start Game');
@@ -12,29 +18,13 @@ function App() {
   
   function handlePause() {
     console.log('Pause Game');
+    setIsPaused(!isPaused);
   }
   
   function handleReset() {
     console.log('Reset Game');
   }
   
-  function handleLeftDown() {
-    setLeftPressed(true);
-  }
-  
-  function handleLeftUp() {
-    setLeftPressed(false);
-  }
-  
-  function handleRightDown(event) {
-    
-    setRightPressed(true);
-    console.log('right button pressed'+event.target.value)
-  }
-  
-  function handleRightUp() {
-    setRightPressed(false);
-  }
   function handleKeyDown(event) {
     if (event.keyCode === 37) {
       setLeftPressed(true);
@@ -95,17 +85,17 @@ function App() {
             Start Game
           </button>
           <button color="primary" onClick={handlePause}>
-            Pause Game
+          {isPaused ? 'Resume' : 'Pause'}
           </button>
           <button color="primary" onClick={handleReset}>
             Reset Game
           </button>
         </div>
-        <CanvasComponent leftPressed={leftPressed} rightPressed={rightPressed} />
+        <CanvasComponent isPaused={isPaused}/>
 
       </main>
       <footer>
-        <p>Use arrow keys or Left/Right buttons to move the paddle</p>
+        <p></p>
       </footer>
     </div>
   );

@@ -1,23 +1,45 @@
-import React, { useRef, useEffect, Fragment} from 'react';
+import React, { useState, useRef, useEffect, Fragment} from 'react';
 import './CanvasComponent.css';
 
-const CanvasComponent = () => {
-  const canvasRef = useRef(null);
+const CanvasComponent = (props) => {
+  let context;
+  let canvas
+  const canvasRef = useRef(null)
+  
+
+
+  useEffect(() => {
+
+    canvas = canvasRef.current;
+
+    if (canvas == null || canvas == undefined) {
+      return;
+    }
+
+    console.log("W: " + canvas.width, "y: " + canvas.height)
+    console.log(window.innerWidth, window.innerHeight)
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    context = canvas.getContext('2d');
+  }
+  , [canvasRef.current]);
+
+  console.log("H: "+canvasRef, "W:" +canvasRef.innerWidth)
   let paddleWidth 
   let paddleHeight 
   let paddleX = 0;
-  let ball = { x: 0, y: 0, dx: 1, dy: -1, radius: 10 };
+  let ball = { x: 0, y: 0, dx: 5, dy: -5, radius: 10 };
 
+  let isPaused = props.isPaused;
   let leftPressed =false;
   let rightPressed = false;
 
   let leftPressedRef = useRef(leftPressed);
   let rightPressedRef = useRef(rightPressed);
-  console.log('leftPressedRef'+leftPressedRef.current)
 
-  const drawBall = (ctx, screenRatio) => {
+  const drawBall = (ctx,screenRatio) => {
     ctx.beginPath();
-    ctx.ellipse(ball.x, ball.y, ball.radius, ball.radius/screenRatio, 0, 0, Math.PI * 2);
+    ctx.ellipse(ball.x, ball.y, ball.radius, 2*ball.radius, 0, 0, Math.PI * 2);
     ctx.fillStyle = 'red';
     ctx.fill();
     ctx.closePath();
@@ -82,43 +104,72 @@ const CanvasComponent = () => {
       leftPressed = false;
     }
   };
-  function handleLeftDown(event) {
+  const handleLeftDown = (e) => {
     leftPressedRef.current=(true);
   }
-  
-  function handleLeftUp() {
+  const handleLeftUp = (e) => {
     leftPressedRef.current=(false);
   }
-  
-  function handleRightDown(event) {
-    
+  const handleRightDown = (e) => {
     rightPressedRef.current=(true);
   }
-  
-  function handleRightUp() {
+  const handleRightUp = (e) => {
     rightPressedRef.current=(false);
   }
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
+// determine canvas size base on window size keeping aspect ratio
+// w:300 h:600 is the original size of the canvas
 
-    let screenRatio = canvas.width / canvas.height;
+//console.log("Original Canvas size: W: " + canvasRef.current.width, "y: " + canvasRef.current.height)
 
-    ball.x = canvas.width / screenRatio;
-    ball.y = canvas.height/ screenRatio;
+
+
+
+
+useEffect(() => {
+  // let canvas = canvasRef.current;
+  if (context == null || context == undefined) {
+    return;
+  }
+  if (canvas == null || canvas == undefined) {
+    return;
+  }
+    //console.log("W: " + canvas.width, "y: " + canvas.height)
+    //console.log(window.innerWidth, window.innerHeight)
+    //const windowWidth = window.innerWidth;
+    //const windowHeight = window.innerHeight;
+    //canvas.width = windowWidth;
+    //canvas.height = windowHeight;
+    //const wRatio = 300 / canvas.width;
+    //const hRatio = 150 / canvas.height;
+    //const screenRatio = wRatio / hRatio;
+    
+    
+
+   //console.log(windowWidth, windowHeight)
+   //console.log(canvas.width, canvas.height)
+   //console.log(context)
+//
+    //let screenRatio = canvas.width / canvas.height;
+    console.log( "width: " + canvas.width, "height: " + canvas.height)
+
+    ball.x = canvas.width /2;
+    ball.y = canvas.height/2;
 
     ball.radius = canvas.width * 0.015; // 1.5% of canvas width
     paddleWidth = canvas.width * 0.2; // 20% of canvas width
-    paddleHeight = canvas.height * 0.025; // 2.5% of canvas height
+    paddleHeight = canvas.height * 0.05; // 2.5% of canvas height
 
     const draw = () => {
+
       context.clearRect(0, 0, canvas.width, canvas.height);
-      drawBall(context, screenRatio);
+      drawBall(context, 1);
       drawPaddle(context);
+      if (isPaused) {
+        return
+      }
       updateBallPosition(context);
       movePaddle();
-      
      
     };
 
@@ -133,12 +184,17 @@ const CanvasComponent = () => {
       document.removeEventListener('keyup', keyUpHandler);
      
     };
-  }, [leftPressed, rightPressed]);
+  }, [leftPressed, rightPressed, isPaused]);
 
   return (
     <Fragment>
     <div className="canvas-container">
-      <canvas ref={canvasRef} />
+    <canvas
+      ref={canvasRef}
+      width="300"
+      height="600"
+      style={{ width: "300px", height: "600px" }}
+    />
     </div>
             <div className="Mobile-controls">
             <button color="primary" type="button" id="left-button" className="control" value="left" onMouseDown={handleLeftDown} onMouseUp={handleLeftUp} onTouchStart={handleLeftDown} onTouchEnd={handleLeftUp}>

@@ -65,6 +65,7 @@ button {
   margin: 1svh 1svw;
   cursor: pointer;
   border-radius: 0.5svh;
+  user-select: none;
 }
 .control {
   font-size: 4svh;
