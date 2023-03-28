@@ -3,8 +3,8 @@ import CanvasComponent from '../components/CanvasComponent.jsx';
 import './App.css';
 
 function App() {
-  const [leftPressed, setLeftPressed] = useState(false);
-  const [rightPressed, setRightPressed] = useState(false);
+  let [leftPressed, setLeftPressed] = useState(false);
+  let [rightPressed, setRightPressed] = useState(false);
 
   function handleStart() {
     console.log('Start Game');
@@ -26,33 +26,36 @@ function App() {
     setLeftPressed(false);
   }
   
-  function handleRightDown() {
+  function handleRightDown(event) {
+    
     setRightPressed(true);
+    console.log('right button pressed'+event.target.value)
   }
   
   function handleRightUp() {
     setRightPressed(false);
   }
-  
+  function handleKeyDown(event) {
+    if (event.keyCode === 37) {
+      setLeftPressed(true);
+    } else if (event.keyCode === 39) {
+      setRightPressed(true);
+    }
+  }
+  function handleKeyUp(event) {
+    if (event.keyCode === 37) {
+      setLeftPressed(false);
+    } else if (event.keyCode === 39) {
+      setRightPressed(false);
+    }
+  }
   useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.keyCode === 37) {
-        setLeftPressed(true);
-      } else if (event.keyCode === 39) {
-        setRightPressed(true);
-      }
-    }
+   //document.addEventListener('left-btn', handleKeyDown);
 
-    function handleKeyUp(event) {
-      if (event.keyCode === 37) {
-        setLeftPressed(false);
-      } else if (event.keyCode === 39) {
-        setRightPressed(false);
-      }
-    }
 
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
+    
+    //document.addEventListener('keydown', handleKeyDown);
+    //document.addEventListener('keyup', handleKeyUp);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
@@ -99,14 +102,7 @@ function App() {
           </button>
         </div>
         <CanvasComponent leftPressed={leftPressed} rightPressed={rightPressed} />
-        <div className="Mobile-controls">
-          <button color="primary" className="control" onMouseDown={handleLeftDown} onMouseUp={handleLeftUp}>
-            Left
-          </button>
-          <button color="primary" className="control" onMouseDown={handleRightDown} onMouseUp={handleRightUp}>
-            Right
-          </button>
-        </div>
+
       </main>
       <footer>
         <p>Use arrow keys or Left/Right buttons to move the paddle</p>
@@ -116,3 +112,4 @@ function App() {
 }
 
 export default App;
+

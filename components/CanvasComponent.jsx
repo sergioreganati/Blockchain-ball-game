@@ -1,27 +1,22 @@
-import React, { useRef, useEffect, useState} from 'react';
+import React, { useRef, useEffect, Fragment} from 'react';
 import './CanvasComponent.css';
 
-
-
-
-
-
-const CanvasComponent = (props) => {
-  const { _leftPressed, _rightPressed } = props
+const CanvasComponent = () => {
   const canvasRef = useRef(null);
   let paddleWidth 
-  let paddleHeight = 10;
+  let paddleHeight 
   let paddleX = 0;
-  let ball = { x: 0, y: 0, dx: 2, dy: -2, radius: 10 };
-  console.log(_leftPressed)
-  console.log(_rightPressed)
+  let ball = { x: 0, y: 0, dx: 1, dy: -1, radius: 10 };
 
-  let rightPressed = _rightPressed;
-  let leftPressed = _leftPressed;
+  let leftPressed =false;
+  let rightPressed = false;
+
+  let leftPressedRef = useRef(leftPressed);
+  let rightPressedRef = useRef(rightPressed);
+  console.log('leftPressedRef'+leftPressedRef.current)
 
   const drawBall = (ctx, screenRatio) => {
     ctx.beginPath();
-    //ctx.ellipse(100, 100, 50, 75, 0, 0, 2 * Math.PI);
     ctx.ellipse(ball.x, ball.y, ball.radius, ball.radius/screenRatio, 0, 0, Math.PI * 2);
     ctx.fillStyle = 'red';
     ctx.fill();
@@ -59,13 +54,12 @@ const CanvasComponent = (props) => {
 
   const movePaddle = () => {
 
-    
-    if (props.rightPressed || rightPressed) {
+    if (rightPressedRef.current || rightPressed) {
       paddleX += 5;
       if (paddleX + paddleWidth > canvasRef.current.width) {
         paddleX = canvasRef.current.width - paddleWidth;
       }
-    } else if (props.leftPressed || leftPressed) {
+    } else if (leftPressedRef.current || leftPressed) {
       paddleX -= 5;
       if (paddleX < 0) {
         paddleX = 0;
@@ -88,10 +82,27 @@ const CanvasComponent = (props) => {
       leftPressed = false;
     }
   };
+  function handleLeftDown(event) {
+    leftPressedRef.current=(true);
+  }
+  
+  function handleLeftUp() {
+    leftPressedRef.current=(false);
+  }
+  
+  function handleRightDown(event) {
+    
+    rightPressedRef.current=(true);
+  }
+  
+  function handleRightUp() {
+    rightPressedRef.current=(false);
+  }
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
-    // Set the canvas dimensions based on device pixel ratio
+
     let screenRatio = canvas.width / canvas.height;
 
     ball.x = canvas.width / screenRatio;
@@ -107,6 +118,7 @@ const CanvasComponent = (props) => {
       drawPaddle(context);
       updateBallPosition(context);
       movePaddle();
+      
      
     };
 
@@ -114,18 +126,29 @@ const CanvasComponent = (props) => {
     document.addEventListener('keydown', keyDownHandler);
     document.addEventListener('keyup', keyUpHandler);
 
+    
     return () => {
       clearInterval(interval);
       document.removeEventListener('keydown', keyDownHandler);
       document.removeEventListener('keyup', keyUpHandler);
      
     };
-  }, []);
+  }, [leftPressed, rightPressed]);
 
   return (
+    <Fragment>
     <div className="canvas-container">
       <canvas ref={canvasRef} />
     </div>
+            <div className="Mobile-controls">
+            <button color="primary" type="button" id="left-button" className="control" value="left" onMouseDown={handleLeftDown} onMouseUp={handleLeftUp} onTouchStart={handleLeftDown} onTouchEnd={handleLeftUp}>
+              Left
+            </button>
+            <button color="primary" type="button" className="control" value= "right" onMouseDown={handleRightDown} onMouseUp={handleRightUp} onTouchStart={handleRightDown} onTouchEnd={handleRightUp}>
+              Right
+            </button>
+          </div>
+    </Fragment>
   );
 };
 
