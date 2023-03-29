@@ -7,7 +7,7 @@ function initializeGame() {
 }
 
 function App() {
-  let [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   let [leftPressed, setLeftPressed] = useState(false);
   let [rightPressed, setRightPressed] = useState(false);
   
@@ -17,6 +17,7 @@ function App() {
   }
   
   function handlePause() {
+    console.log(isPaused)
     console.log('Pause Game');
     setIsPaused(!isPaused);
   }
@@ -91,7 +92,7 @@ function App() {
             Reset Game
           </button>
         </div>
-        <CanvasComponent isPaused={isPaused}/>
+        <CanvasComponent isPaused={isPaused} setIsPaused={setIsPaused}/>
 
       </main>
       <footer>

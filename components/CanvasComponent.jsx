@@ -2,44 +2,74 @@ import React, { useState, useRef, useEffect, Fragment} from 'react';
 import './CanvasComponent.css';
 
 const CanvasComponent = (props) => {
-  let context;
-  let canvas
+  let canvas= null;
+  let canvasContaier = null;
+  let aspectRatio
+  
+  
   const canvasRef = useRef(null)
+  const canvasContaierRef = useRef(null)
+  
+  const [canvasWidth, setCanvasWidth] = useState(300);
+  const [canvasHeight, setCanvasHeight] = useState(600);
+  const [context, setContext] = useState(null);
+  const [screenRatio, setScreenRatio] = useState(null);
+  
   
 
 
   useEffect(() => {
 
     canvas = canvasRef.current;
+    canvasContaier= canvasContaierRef.current;
 
     if (canvas == null || canvas == undefined) {
       return;
     }
 
     console.log("W: " + canvas.width, "y: " + canvas.height)
-    console.log(window.innerWidth, window.innerHeight)
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    context = canvas.getContext('2d');
-  }
-  , [canvasRef.current]);
 
-  console.log("H: "+canvasRef, "W:" +canvasRef.innerWidth)
+
+    const canvasContainerWidth = canvasContaier.offsetWidth;
+    const canvasContainerHeight = canvasContaier.offsetHeight;
+
+    aspectRatio = Math.min(canvasContainerWidth / canvas.width, canvasContainerHeight / canvas.height);
+    if (aspectRatio != 1 )
+    {
+      setScreenRatio (aspectRatio);
+    }
+
+    console.log(aspectRatio, parseFloat(screenRatio))
+    canvas.width = canvas.width * aspectRatio;
+    canvas.height = canvas.height * aspectRatio;
+
+    setCanvasWidth (canvas.width);
+    setCanvasHeight (canvas.height);
+
+    console.log("variable canvasWidth: " + canvasWidth)
+    console.log("variable canvasHeight: " + canvasHeight)
+    console.log( "updated dimensions" +"H: "+canvasRef.current.height + " W:" +canvasRef.current.width)
+
+    setContext (canvas.getContext('2d'));
+  }
+  , [canvasRef.current, canvas,context, canvasContaierRef, window]);
+
+
   let paddleWidth 
   let paddleHeight 
   let paddleX = 0;
   let ball = { x: 0, y: 0, dx: 5, dy: -5, radius: 10 };
 
-  let isPaused = props.isPaused;
+  //
   let leftPressed =false;
   let rightPressed = false;
 
   let leftPressedRef = useRef(leftPressed);
   let rightPressedRef = useRef(rightPressed);
 
-  const drawBall = (ctx,screenRatio) => {
+  const drawBall = (ctx) => {
     ctx.beginPath();
-    ctx.ellipse(ball.x, ball.y, ball.radius, 2*ball.radius, 0, 0, Math.PI * 2);
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fillStyle = 'red';
     ctx.fill();
     ctx.closePath();
@@ -47,9 +77,9 @@ const CanvasComponent = (props) => {
 
   const drawPaddle = (ctx) => {
     ctx.beginPath();
-    ctx.rect(paddleX, ctx.canvas.height - paddleHeight, paddleWidth, paddleHeight);
     ctx.fillStyle = 'blue';
-    ctx.fill();
+    ctx.fillRect(paddleX, ctx.canvas.height - paddleHeight, paddleWidth, paddleHeight);
+    //ctx.fill();
     ctx.closePath();
   };
 
@@ -69,7 +99,7 @@ const CanvasComponent = (props) => {
       } else {
         //alert('Game Over');
         return
-        document.location.reload();
+        //document.location.reload();
       }
     }
   };
@@ -117,40 +147,55 @@ const CanvasComponent = (props) => {
     rightPressedRef.current=(false);
   }
 
-// determine canvas size base on window size keeping aspect ratio
-// w:300 h:600 is the original size of the canvas
+  const isPausedRef = useRef(null);
 
-//console.log("Original Canvas size: W: " + canvasRef.current.width, "y: " + canvasRef.current.height)
-
-
-
-
+  useEffect(() => {
+    isPausedRef.current = props.isPaused;
+    console.log("new useEffect: "+props.isPaused);
+  }, [props.isPaused]);
+  //___________________________________________________
+  const toggleGameLoop = (start) => {
+    if (start===true) {
+      const draw = () => {
+        if (isPausedRef.current === true) {
+          console.log("paused");
+          cancelAnimationFrame(draw);
+          return;
+        }
+        context.clearRect(0, 0, canvasWidth, canvasHeight);
+        drawBall(context);
+        drawPaddle(context);
+  
+        updateBallPosition(context);
+        movePaddle();
+        requestAnimationFrame(draw);
+      };
+      draw();
+    } else {
+      console.log("paused");
+    }
+  };
+  
+  useEffect(() => {
+    if (context == null || context == undefined) {
+      console.log("context is null");
+      return;
+    }
+    console.log("isPausedRef.current: "+isPausedRef.current)
+  
+    toggleGameLoop(!isPausedRef.current);
+  }, [isPausedRef.current]);
+  //___________________________________________________
+  
 
 useEffect(() => {
-  // let canvas = canvasRef.current;
   if (context == null || context == undefined) {
     return;
   }
   if (canvas == null || canvas == undefined) {
     return;
   }
-    //console.log("W: " + canvas.width, "y: " + canvas.height)
-    //console.log(window.innerWidth, window.innerHeight)
-    //const windowWidth = window.innerWidth;
-    //const windowHeight = window.innerHeight;
-    //canvas.width = windowWidth;
-    //canvas.height = windowHeight;
-    //const wRatio = 300 / canvas.width;
-    //const hRatio = 150 / canvas.height;
-    //const screenRatio = wRatio / hRatio;
-    
-    
-
-   //console.log(windowWidth, windowHeight)
-   //console.log(canvas.width, canvas.height)
-   //console.log(context)
-//
-    //let screenRatio = canvas.width / canvas.height;
+  
     console.log( "width: " + canvas.width, "height: " + canvas.height)
 
     ball.x = canvas.width /2;
@@ -160,40 +205,42 @@ useEffect(() => {
     paddleWidth = canvas.width * 0.2; // 20% of canvas width
     paddleHeight = canvas.height * 0.05; // 2.5% of canvas height
 
-    const draw = () => {
-
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      drawBall(context, 1);
-      drawPaddle(context);
-      if (isPaused) {
-        return
-      }
-      updateBallPosition(context);
-      movePaddle();
-     
-    };
-
-    const interval = setInterval(draw, 10);
+   // const draw = () => {
+   //   if (isPausedRef.current===true) {
+   //     console.log("paused")
+   //     cancelAnimationFrame(draw);
+   //     return
+   //   }
+   //   context.clearRect(0, 0, canvas.width, canvas.height);
+   //   drawBall(context);
+   //   drawPaddle(context);
+//
+   //   updateBallPosition(context);
+   //   movePaddle();
+   //   requestAnimationFrame(draw);
+   //  
+   // };
+//
+   // draw();
     document.addEventListener('keydown', keyDownHandler);
     document.addEventListener('keyup', keyUpHandler);
 
     
     return () => {
-      clearInterval(interval);
       document.removeEventListener('keydown', keyDownHandler);
       document.removeEventListener('keyup', keyUpHandler);
      
     };
-  }, [leftPressed, rightPressed, isPaused]);
+  }, [leftPressed, rightPressed, context, canvasRef, canvas, isPausedRef]);
 
   return (
     <Fragment>
-    <div className="canvas-container">
+    <div className="canvas-container" ref={canvasContaierRef}>
     <canvas
       ref={canvasRef}
-      width="300"
-      height="600"
-      style={{ width: "300px", height: "600px" }}
+      width={canvasWidth}
+      height={canvasHeight}
+      
     />
     </div>
             <div className="Mobile-controls">
