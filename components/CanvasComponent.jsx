@@ -15,7 +15,7 @@ let paddle = {x: 0, y:0, dx:2, w: 75, h: 10};
 
 
 const CanvasComponent = ({onValueChange}) => {
-    console.log("Loading ....CanvasComponent with props: ")
+    console.log("Loading ....CanvasComponent")
     
     const canvasRef = useRef(null)
     const canvasContaierRef = useRef(null)
@@ -23,16 +23,13 @@ const CanvasComponent = ({onValueChange}) => {
     const leftPressedRef=useRef(false);
     const requestRef = useRef();
 
-    
     const [canvasWidth, setCanvasWidth] = useState(400);
     const [canvasHeight, setCanvasHeight] = useState(600);
     const [isPaused, setIsPaused] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
     
-
     const [score, setScore] = useState(0);
     const [lives, setLives] = useState(3);
-
     const [level, setLevel] = useState(0);
 
     //=======================================================================================
@@ -47,7 +44,6 @@ const CanvasComponent = ({onValueChange}) => {
         {
             setCanvasWidth (canvasWidth * aspectRatio);
             setCanvasHeight (canvasHeight * aspectRatio);
-            //update ball size and speed
         }
         context= canvasRef.current.getContext('2d');
     }
@@ -62,6 +58,14 @@ const CanvasComponent = ({onValueChange}) => {
         paddle.dx = canvasWidth * 0.01;
         paddle.y= canvasHeight;
     }
+    const resetBall = () => {
+        ball.x = canvasWidth/2;
+        ball.y = canvasHeight*0.2;
+        ball.dx = canvasWidth * 0.005;
+        ball.dy = canvasHeight * 0.005;
+    }
+
+
     
     //Draw Elements calling functions from GameComponents.js
     const drawElements = (context, ball, paddle) => {
@@ -69,16 +73,15 @@ const CanvasComponent = ({onValueChange}) => {
         updateBallPosition(context, ball);
         updatePaddlePosition(context, paddle, rightPressedRef.current, leftPressedRef.current)
         drawBall(context, ball);
+        updateBallSpeed(context, ball);
         drawPaddle(context, paddle);
     }
     const updateBallPosition = (context, ball) => { 
         ball.x += ball.dx;
         ball.y += ball.dy;
-    
         if (ball.x + ball.radius > context.canvas.width || ball.x - ball.radius < 0) {
           ball.dx = -ball.dx;
         }
-    
         if (ball.y - ball.radius < 0) {
           ball.dy = -ball.dy;
         } else if (ball.y + ball.radius > context.canvas.height - paddle.h) {
@@ -87,30 +90,29 @@ const CanvasComponent = ({onValueChange}) => {
             ball.y = context.canvas.height - paddle.h - ball.radius
             setScore(prevScore => {
               const newScore = prevScore + 1;
-              console.log("score: " + newScore);
+              setLevel(Math.floor(newScore/2))
               return newScore;
             });
           } else if (ball.y + ball.radius< context.canvas.height){
             setLives(prevLives => {
               const newLives = prevLives - 1;
-              console.log("lives: " + newLives);
+              if(newLives<=0) {
+                handleGameOver();
+              } else  {
+                resetBall();
+                handlePause();
+              }
               return newLives;
             });
-            if (lives<=1) {
-              setIsGameOver(true);
-              console.log("Game Over!!!!!!!!!!!!!!!!!!!!!!")
-              return
-            }
-            //restart after 
-            
-            ball.x = context.canvas.width / 2;
-            ball.y = context.canvas.height * 0.2;
-            handlePause();
-            
-            //document.location.reload();
           }
         }
       };
+      const updateBallSpeed = (ball, level) => {
+        ball.dx = parseFloat(ball.dx) + level * 0.1;
+        ball.dy = ball.dy + level * 0.1;
+        console.log("ball.dx: " + ball.dx + " ball.dy: " + ball.dy);
+        console.log(ball)
+      }
     const updatePaddlePosition = (context, paddle, rightPressed, leftPressed) => {
       if (leftPressed) {
           paddle.x -= paddle.dx;
@@ -128,14 +130,23 @@ const CanvasComponent = ({onValueChange}) => {
       if (score > highScore) {
         highScore = score;
       }
-      if (score % 2 == 0 && score > 0) {
-        setLevel(prevLevel => {
-          const newLevel = prevLevel + 1;
-          console.log("level: " + newLevel);
-          return newLevel;
-        });
-      } 
       onValueChange( score, level, lives, highScore);
+      }
+      const handleGameOver = () => {
+        console.log("Game Over!!!!!!!!!!!!!!!!!!!!!!")
+        setIsGameOver(true);
+        setIsPaused(true);//
+        //setIsPaused(true);
+        //updateStats(score, level, lives, highScore);
+        setScore(0);
+        setLives(3);
+        setLevel(0);
+        ball.x = context.canvas.width / 2;
+        ball.y = context.canvas.height * 0.2;
+        //display game over message
+        context.font = '48px Arial';
+        context.fillStyle = 'red';
+        context.fillText('Game Over', context.canvas.width / 2 - 100, context.canvas.height / 2);
       }
     //=======================================================================================
     //useEffect 1: initialize canvas and game components
@@ -161,18 +172,19 @@ const CanvasComponent = ({onValueChange}) => {
       }
     }, [canvasRef.current, canvasContaierRef.current, canvasWidth, canvasHeight]);
 
-    //useEffect 2: game loop ---->>>> probably dont need ref here
+    //useEffect 2: game loop 
     useEffect(() => {
         console.log("useEffect 2: game loop")
         if (context == null || context == undefined) {
-          console.log("context is null or undefined")
           return;
         }
           const gameLoop = () => {
+            if(!isGameOver){
           drawElements(context, ball, paddle);   
+          }
           requestRef.current = requestAnimationFrame(gameLoop);
         }
-          if(!isPaused) {
+          if(!isPaused && !isGameOver) { 
           gameLoop();
           } else {
           cancelAnimationFrame(requestRef.current);
@@ -184,16 +196,13 @@ const CanvasComponent = ({onValueChange}) => {
           window.removeEventListener('keydown', keyDownHandler);
           window.removeEventListener('keyup', keyUpHandler);
           };
-    }, [isPaused]);
+    }, [isPaused, isGameOver]);
     //useEffect 3: stats
     useEffect(() => {
-      console.log("Updated score: " + score);
-      
       updateStats(score, level, lives, highScore);
       return () => {
-     
       }
-    }, [score, lives]);
+    }, [score, lives, level]);
     
     //=======================================================================================
     // Key handlers----------------------------------------------
@@ -231,7 +240,7 @@ const CanvasComponent = ({onValueChange}) => {
       }
       function handlePause() {
           setIsPaused(!isPaused)
-          console.log("Pause button toggled "+ isPaused)
+          setIsGameOver(false);
       }
       function handleReset() {
         console.log('Reset Game');
@@ -245,7 +254,7 @@ const CanvasComponent = ({onValueChange}) => {
             Start Game
           </button>
           <button color="primary" onClick={handlePause}>
-          {isPaused ? 'Resume' : 'Pause'}
+          {isGameOver ? 'Restart' :(isPaused ? 'Resume' : 'Pause')}
           </button>
           <button color="primary" onClick={handleReset}>
             Reset Game
