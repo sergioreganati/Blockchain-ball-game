@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import CanvasComponent from '../components/CanvasComponent.jsx';
+import CanvasComponent from './components/CanvasComponent.jsx';
 import './App.css';
 
 
