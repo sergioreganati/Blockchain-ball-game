@@ -35,6 +35,7 @@ const CanvasComponent = ({onValueChange}) => {
     const [level, setLevel] = useState(0);
 
     const impactFactor = 0.5;
+    const marginOfError = 15; // Adjust this value to change the margin of error
 
     //=======================================================================================
     // Functions----------------------------------------------
@@ -53,7 +54,7 @@ const CanvasComponent = ({onValueChange}) => {
     }
     const determineGameComponents = () => {
         //determine ball size and speed
-        ball.radius = canvasWidth * 0.02;
+        ball.radius = canvasWidth * 0.05;
         ball.dx = canvasWidth * 0.005;
         ball.dy = canvasHeight * 0.005;
         //determine paddle size and speed
@@ -66,27 +67,36 @@ const CanvasComponent = ({onValueChange}) => {
         ball.x = canvasWidth/2;
         ball.y = canvasHeight*0.2;
         ball.dx = canvasWidth * 0.005;
-        ball.dy = canvasHeight * 0.001;
+        ball.dy = canvasHeight * 0.005;
     }
     
     //Draw Elements calling functions from GameComponents.js
     const drawElements = (context, ball, paddle, level) => {
         context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+        drawBackground(context, context.canvas.width, context.canvas.height);
         updateBallPosition(context, ball, level);
         updatePaddlePosition(context, paddle, rightPressedRef.current, leftPressedRef.current)
         drawBall(context, ball);
         drawPaddle(context, paddle);
     }
+    function drawBackground(ctx, canvasWidth, canvasHeight) {
+      const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
+      gradient.addColorStop(0, '#c6ff1a');
+      gradient.addColorStop(1, '#4d6600');
+    
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
+    
     const updateBallPosition = (context, ball, level) => { 
         updateBallSpeed(ball, level);
-        console.log("ball.dx: " + ball.dx*(level*0.05+1) + " ball.dy: " + ball.dy*(level*0.05+1));
         if (ball.x + ball.radius > context.canvas.width || ball.x - ball.radius < 0) {
           ball.dx = -ball.dx;
         }
         if (ball.y - ball.radius < 0) {
           ball.dy = -ball.dy;
         } else if (ball.y + ball.radius > context.canvas.height - paddle.h) {
-          if (ball.x > paddle.x && ball.x < paddle.x + paddle.w) {
+          if (ball.x > paddle.x -marginOfError && ball.x < paddle.x + paddle.w+marginOfError) {
             const impact = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
             
             ball.dx = ball.dx * (1 + impactFactor * impact);
@@ -205,7 +215,7 @@ const CanvasComponent = ({onValueChange}) => {
         // Display game over message
         context.font = '48px Arial';
         context.fillStyle = 'red';
-        context.fillText('Game Over', context.canvas.width / 2 - 100, context.canvas.height / 2);
+        context.fillText('Game Over', context.canvas.width / 2 - 120, context.canvas.height / 2);
     
         // Reset the game after a delay (e.g., 2 seconds)
         const resetTimeout = setTimeout(() => {
