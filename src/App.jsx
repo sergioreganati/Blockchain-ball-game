@@ -2,54 +2,23 @@ import { useState, useEffect } from 'react';
 import CanvasComponent from '../components/CanvasComponent.jsx';
 import './App.css';
 
-function initializeGame() {
-  console.log('Initialize Game');
-}
 
 function App() {
-  const [isPaused, setIsPaused] = useState(false);
-  let [leftPressed, setLeftPressed] = useState(false);
-  let [rightPressed, setRightPressed] = useState(false);
-  
+  const [score, setScore] = useState(0);
+  const [level, setLevel] = useState(0);
+  const [lives, setLives] = useState(0);
+  const [highScore, setHighScore] = useState(0);
 
-  function handleStart() {
-    console.log('Start Game');
-  }
+  const receiveStats = (score, level, lives, highScore) => {
+    setScore(score);
+    setLevel(level);
+    setLives(lives);
+    setHighScore(highScore);
+    console.log("score: " + score + " level: " + level + " lives: " + lives + " highScore: " + highScore);
+  };
   
-  function handlePause() {
-    console.log(isPaused)
-    console.log('Pause Game');
-    setIsPaused(!isPaused);
-  }
-  
-  function handleReset() {
-    console.log('Reset Game');
-  }
-  
-  function handleKeyDown(event) {
-    if (event.keyCode === 37) {
-      setLeftPressed(true);
-    } else if (event.keyCode === 39) {
-      setRightPressed(true);
-    }
-  }
-  function handleKeyUp(event) {
-    if (event.keyCode === 37) {
-      setLeftPressed(false);
-    } else if (event.keyCode === 39) {
-      setRightPressed(false);
-    }
-  }
   useEffect(() => {
-   //document.addEventListener('left-btn', handleKeyDown);
-
-
-    
-    //document.addEventListener('keydown', handleKeyDown);
-    //document.addEventListener('keyup', handleKeyUp);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
@@ -63,36 +32,25 @@ function App() {
           <div className="Stats-box">
             Score:
             <br />
-            34{/* Display the score here */}
+            {score}
           </div>
           <div className="Stats-box">
             Level:
             <br />
-            34{/* Display the level here */}
+            {level}
           </div>
           <div className="Stats-box">
             Lives:
             <br />
-            4{/* Display the remaining lives here */}
+            {lives}
           </div>
           <div className="Stats-box">
             H Score:
             <br />
-            209
+            {highScore}
           </div>
         </div>
-        <div className="Mobile-controls">
-          <button color="primary" onClick={handleStart}>
-            Start Game
-          </button>
-          <button color="primary" onClick={handlePause}>
-          {isPaused ? 'Resume' : 'Pause'}
-          </button>
-          <button color="primary" onClick={handleReset}>
-            Reset Game
-          </button>
-        </div>
-        <CanvasComponent isPaused={isPaused} setIsPaused={setIsPaused}/>
+        <CanvasComponent onValueChange={receiveStats}/>
 
       </main>
       <footer>
