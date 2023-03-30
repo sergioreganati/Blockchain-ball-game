@@ -4,14 +4,13 @@ import './GameComponents.js'
 import { drawBall, drawPaddle } from './GameComponents.js';
 
 
-let score = 0;
-let level = 0;
-let lives = 3;
+//let lives = 3;
 let highScore = 0;
-
+//let level =0;
 let context;
 
 let ball = { x: 0, y: 0, dx: 5, dy: -5, radius: 7 };
+const ballInitial = ball
 let paddle = {x: 0, y:0, dx:2, w: 75, h: 10};
 
 
@@ -22,14 +21,19 @@ const CanvasComponent = ({onValueChange}) => {
     const canvasContaierRef = useRef(null)
     const rightPressedRef=useRef(false);
     const leftPressedRef=useRef(false);
+    const requestRef = useRef();
 
-    
     
     const [canvasWidth, setCanvasWidth] = useState(400);
     const [canvasHeight, setCanvasHeight] = useState(600);
     const [isPaused, setIsPaused] = useState(false);
+    const [isGameOver, setIsGameOver] = useState(false);
+    
 
-    const [leftPressed, setLeftPressed] = useState(false);
+    const [score, setScore] = useState(0);
+    const [lives, setLives] = useState(3);
+
+    const [level, setLevel] = useState(0);
 
     //=======================================================================================
     // Functions----------------------------------------------
@@ -50,27 +54,24 @@ const CanvasComponent = ({onValueChange}) => {
     const determineGameComponents = () => {
         //determine ball size and speed
         ball.radius = canvasWidth * 0.02;
-        ball.dx = canvasWidth * 0.01;
-        ball.dy = canvasHeight * 0.01;
+        ball.dx = canvasWidth * 0.005;
+        ball.dy = canvasHeight * 0.005;
         //determine paddle size and speed
         paddle.w = canvasWidth * 0.2;
         paddle.h = canvasHeight * 0.02;
         paddle.dx = canvasWidth * 0.01;
         paddle.y= canvasHeight;
-
     }
     
     //Draw Elements calling functions from GameComponents.js
-    const drawElements = (context, ball, paddle, canvasWidth, canvasHeight) => {
-        context.clearRect(0, 0, canvasWidth, canvasHeight);
+    const drawElements = (context, ball, paddle) => {
+        context.clearRect(0, 0, context.canvas.width, context.canvas.height);
         updateBallPosition(context, ball);
-        updatePaddlePosition(context, paddle, rightPressedRef.current, leftPressedRef.current, canvasWidth, canvasHeight)
+        updatePaddlePosition(context, paddle, rightPressedRef.current, leftPressedRef.current)
         drawBall(context, ball);
         drawPaddle(context, paddle);
-        //requestAnimationFrame(() => drawElements(context, ball, paddle));
-        
     }
-    const updateBallPosition = (context, ball) => { //<<<Needs word so the ball does not go inside paddle
+    const updateBallPosition = (context, ball) => { 
         ball.x += ball.dx;
         ball.y += ball.dy;
     
@@ -84,84 +85,116 @@ const CanvasComponent = ({onValueChange}) => {
           if (ball.x > paddle.x && ball.x < paddle.x + paddle.w) {
             ball.dy = -ball.dy;
             ball.y = context.canvas.height - paddle.h - ball.radius
-          } else {
-            //alert('Game Over');
-            return
+            setScore(prevScore => {
+              const newScore = prevScore + 1;
+              console.log("score: " + newScore);
+              return newScore;
+            });
+          } else if (ball.y + ball.radius< context.canvas.height){
+            setLives(prevLives => {
+              const newLives = prevLives - 1;
+              console.log("lives: " + newLives);
+              return newLives;
+            });
+            if (lives<=1) {
+              setIsGameOver(true);
+              console.log("Game Over!!!!!!!!!!!!!!!!!!!!!!")
+              return
+            }
+            //restart after 
+            
+            ball.x = context.canvas.width / 2;
+            ball.y = context.canvas.height * 0.2;
+            handlePause();
+            
             //document.location.reload();
           }
         }
       };
-      const updatePaddlePosition = (context, paddle, rightPressed, leftPressed, canvasWidth, canvasHeight) => {
-        if (leftPressed) {
-            paddle.x -= paddle.dx;
-            if (paddle.x < 0) {
-                paddle.x = 0;
-            }
-        } else if (rightPressed) {
-            paddle.x += paddle.dx;
-            if (paddle.x + paddle.w > canvasWidth) {
-                paddle.x = canvasWidth - paddle.w;  
-            }
-        }
-        };
-
-    //=======================================================================================    
-    const useValuesAsRef = (...values) => {
-      const valueRef = useRef(values);
-    
-      useEffect(() => {
-        console.log("useEffect: useValuesAsRef")
-        valueRef.current = values;
-      }, [values]);
-    
-      return valueRef;
-    };
-    const dimensionsRef = useValuesAsRef(canvasWidth, canvasHeight);
-    
+    const updatePaddlePosition = (context, paddle, rightPressed, leftPressed) => {
+      if (leftPressed) {
+          paddle.x -= paddle.dx;
+          if (paddle.x < 0) {
+              paddle.x = 0;
+          }
+      } else if (rightPressed) {
+          paddle.x += paddle.dx;
+          if (paddle.x + paddle.w > context.canvas.width) {
+              paddle.x = context.canvas.width - paddle.w;  
+          }
+      }
+      };
+    const updateStats = (score, level, lives, highScore) => {
+      if (score > highScore) {
+        highScore = score;
+      }
+      if (score % 2 == 0 && score > 0) {
+        setLevel(prevLevel => {
+          const newLevel = prevLevel + 1;
+          console.log("level: " + newLevel);
+          return newLevel;
+        });
+      } 
+      onValueChange( score, level, lives, highScore);
+      }
     //=======================================================================================
-    //useEffect 1: initialize canvas
-//useEffect 1: initialize canvas and game components
-useEffect(() => {
-  if (canvasRef.current == null || canvasRef.current == undefined) {
-      return;
-  }
-  window.addEventListener('resize', determineCanvasSize);
-  console.log("useEffect 1: initialize canvas and game components")
-  determineCanvasSize();
-  determineGameComponents();
-  //reset ball and paddle positions
-  ball.x = canvasWidth / 2;
-  ball.y = canvasHeight * 0.2;
-  paddle.x = (canvasWidth - paddle.w) / 2;
-  if (context == null || context == undefined) {
-      return;
-  }
-  drawElements(context, ball, paddle, canvasWidth, canvasHeight);
-
-  return () => {
-      window.removeEventListener('resize', determineCanvasSize);
-  }
-}, [canvasRef.current, canvasContaierRef.current, canvasWidth, canvasHeight]);
-
-    //useEffect 3: game loop ---->>>> probably dont need ref here
+    //useEffect 1: initialize canvas and game components
     useEffect(() => {
-        console.log("useEffect 3: game loop")
+      if (canvasRef.current == null || canvasRef.current == undefined) {
+          return;
+      }
+      window.addEventListener('resize', determineCanvasSize);
+      console.log("useEffect 1: initialize canvas and game components")
+      determineCanvasSize();
+      determineGameComponents();
+      //reset ball and paddle positions
+      ball.x = context.canvas.width / 2;
+      ball.y = context.canvas.height * 0.2;
+      paddle.x = (context.canvas.width - paddle.w) / 2;
+      if (context == null || context == undefined) {
+          return;
+      }
+      drawElements(context, ball, paddle);
+    
+      return () => {
+          window.removeEventListener('resize', determineCanvasSize);
+      }
+    }, [canvasRef.current, canvasContaierRef.current, canvasWidth, canvasHeight]);
+
+    //useEffect 2: game loop ---->>>> probably dont need ref here
+    useEffect(() => {
+        console.log("useEffect 2: game loop")
         if (context == null || context == undefined) {
           console.log("context is null or undefined")
           return;
         }
-        
           const gameLoop = () => {
-          const [currentWidth, currentHeight] = dimensionsRef.current;
-          drawElements(context, ball, paddle, currentWidth, currentHeight);   
-          requestAnimationFrame(gameLoop);
-          }
+          drawElements(context, ball, paddle);   
+          requestRef.current = requestAnimationFrame(gameLoop);
+        }
+          if(!isPaused) {
           gameLoop();
-        
-        
-        
-    }, []);
-
+          } else {
+          cancelAnimationFrame(requestRef.current);
+          }
+          window.addEventListener('keydown', keyDownHandler);
+          window.addEventListener('keyup', keyUpHandler);
+          return () => {
+          cancelAnimationFrame(requestRef.current);
+          window.removeEventListener('keydown', keyDownHandler);
+          window.removeEventListener('keyup', keyUpHandler);
+          };
+    }, [isPaused]);
+    //useEffect 3: stats
+    useEffect(() => {
+      console.log("Updated score: " + score);
+      
+      updateStats(score, level, lives, highScore);
+      return () => {
+     
+      }
+    }, [score, lives]);
+    
     //=======================================================================================
     // Key handlers----------------------------------------------
     const keyDownHandler = (e) => {
@@ -169,23 +202,22 @@ useEffect(() => {
           rightPressedRef.current = true;
         } else if (e.key === 'ArrowLeft') {
           leftPressedRef.current = true;
+        } else if (e.key === 'p') {
+          handlePause();
         }
       };
-    
       const keyUpHandler = (e) => {
         if (e.key === 'ArrowRight') {
           rightPressedRef.current = false;
         } else if (e.key === 'ArrowLeft') {
           leftPressedRef.current = (false);
-        }
+        } 
       };
       const handleLeftDown = (e) => {
         leftPressedRef.current = (true);
-        console.log("leftPressedRef.current: " + leftPressed)
       }
       const handleLeftUp = (e) => {
         leftPressedRef.current = (false);
-        console.log("leftPressedRef.current: " + leftPressed)
       }
       const handleRightDown = (e) => {
         rightPressedRef.current = (true);
@@ -194,30 +226,16 @@ useEffect(() => {
       const handleRightUp = (e) => {
         rightPressedRef.current = (false);
       }
-    
       function handleStart() {
         console.log('Start Game');
       }
-      
       function handlePause() {
           setIsPaused(!isPaused)
           console.log("Pause button toggled "+ isPaused)
-        
-       
       }
-      
       function handleReset() {
         console.log('Reset Game');
       }
-    //Snipet to update stats to the parent component
-    const updateStats = false;
-    if(updateStats){
-    score = score + 1;
-    level = level + 1;
-    onValueChange( score, level, lives, highScore);
-    }
-    //___________________________________________________________
-
     //=======================================================================================
 
     return (
