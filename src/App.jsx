@@ -4,6 +4,22 @@ import './App.css';
 
 
 function App() {
+
+  // Prevent scrolling on mobile
+  function preventTouchMove(event) {
+    event.preventDefault();
+  }
+  function toggleScrolling(disable) {
+    if (disable) {
+      document.body.classList.add('no-scroll');
+      document.addEventListener('touchmove', preventTouchMove, { passive: false });
+    } else {
+      document.body.classList.remove('no-scroll');
+      document.removeEventListener('touchmove', preventTouchMove, { passive: false });
+    }
+  }
+  toggleScrolling(true);
+// End prevent scrolling on mobile
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(0);
   const [lives, setLives] = useState(0);
@@ -14,7 +30,7 @@ function App() {
     setLevel(level);
     setLives(lives);
     setHighScore(highScore);
-    console.log("score: " + score + " level: " + level + " lives: " + lives + " highScore: " + highScore);
+    //console.log("score: " + score + " level: " + level + " lives: " + lives + " highScore: " + highScore);
   };
   
   useEffect(() => {
