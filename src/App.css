@@ -1,4 +1,4 @@
-body.no-scroll {
+body {
   margin: 0svw;
   padding: 0svh;
   background-color: rgb(126, 124, 138);
@@ -14,9 +14,9 @@ body.no-scroll {
   width: 100%;
   text-align: center;
   font-size: 1.5svh;
-  padding: 0.5svh;
   background-color: rgb(126, 124, 138);
-  height: 5svh;
+  height: 4svh;
+  text-shadow: 1svh 1svh 1svh rgb(141, 29, 145);
 }
 
 .Stats {
@@ -43,14 +43,11 @@ body.no-scroll {
 
 }
 .Mobile-controls {
-  isolation: isolate;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   font-size: 2svh;
-  padding: 1svh;
   background-color: rgb(126, 124, 138);
-  height: 5svh;
 }
 button {
   display: flex;
@@ -70,6 +67,6 @@ button {
 .control {
   font-size: 4svh;
   padding: 1svh;
-  width: 40%;
+  width: 48%;
   height: 10svh;
 }

@@ -11,7 +11,7 @@ let context;
 
 let ball = { x: 0, y: 0, dx: 5, dy: -5, radius: 7 };
 const ballInitial = ball
-let paddle = {x: 0, y:0, dx:2, w: 75, h: 10};
+let paddle = {x: 0, y:0, dx:2, w: 75, h: 30};
 
 
 const CanvasComponent = ({onValueChange}) => {
@@ -27,6 +27,8 @@ const CanvasComponent = ({onValueChange}) => {
     const [canvasHeight, setCanvasHeight] = useState(600);
     const [isPaused, setIsPaused] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
+    const [showGameOver, setShowGameOver] = useState(false);
+
     
     const [score, setScore] = useState(0);
     const [lives, setLives] = useState(3);
@@ -56,7 +58,7 @@ const CanvasComponent = ({onValueChange}) => {
         ball.dy = canvasHeight * 0.005;
         //determine paddle size and speed
         paddle.w = canvasWidth * 0.2;
-        paddle.h = canvasHeight * 0.02;
+        paddle.h = canvasHeight * 0.04;
         paddle.dx = canvasWidth * 0.01;
         paddle.y= canvasHeight;
     }
@@ -64,7 +66,7 @@ const CanvasComponent = ({onValueChange}) => {
         ball.x = canvasWidth/2;
         ball.y = canvasHeight*0.2;
         ball.dx = canvasWidth * 0.005;
-        ball.dy = canvasHeight * 0.005;
+        ball.dy = canvasHeight * 0.001;
     }
     
     //Draw Elements calling functions from GameComponents.js
@@ -138,20 +140,9 @@ const CanvasComponent = ({onValueChange}) => {
       onValueChange( score, level, lives, highScore);
       }
       const handleGameOver = () => {
-
-        console.log("Game Over!!!!!!!!!!!!!!!!!!!!!!")
-        setIsGameOver(true);
+        setShowGameOver(true);
         setIsPaused(true);//
-        setScore(0);
-        setLives(3);
-        setLevel(0);
-        highScore = parseInt(localStorage.getItem("highScore"));
-        ball.x = context.canvas.width / 2;
-        ball.y = context.canvas.height * 0.2;
-        //display game over message
-        context.font = '48px Arial';
-        context.fillStyle = 'red';
-        context.fillText('Game Over', context.canvas.width / 2 - 100, context.canvas.height / 2);
+        setIsGameOver(true);
       }
     //=======================================================================================
     //useEffect 1: initialize canvas and game components
@@ -208,6 +199,32 @@ const CanvasComponent = ({onValueChange}) => {
       return () => {
       }
     }, [score, lives, level]);
+    //useEffect 4: GameOver message
+    useEffect(() => {
+      if (showGameOver) {
+        // Display game over message
+        context.font = '48px Arial';
+        context.fillStyle = 'red';
+        context.fillText('Game Over', context.canvas.width / 2 - 100, context.canvas.height / 2);
+    
+        // Reset the game after a delay (e.g., 2 seconds)
+        const resetTimeout = setTimeout(() => {
+          
+          setIsPaused(true);
+          setShowGameOver(false);
+          setScore(0);
+          setLives(3);
+          setLevel(0);
+          resetBall();
+          highScore = parseInt(localStorage.getItem("highScore"));
+        }, 700);
+    
+        return () => {
+          clearTimeout(resetTimeout);
+        };
+      }
+    }, [showGameOver]);
+    
     
     //=======================================================================================
     // Key handlers----------------------------------------------
@@ -254,17 +271,11 @@ const CanvasComponent = ({onValueChange}) => {
 
     return (
         <Fragment>
-                    <div className="Mobile-controls">
-          <button color="primary" onClick={handleStart}>
-            Start Game
-          </button>
-          <button color="primary" onClick={handlePause}>
+          <div className="Mobile-controls">
+          <button className="top-btn" color="primary" onClick={handlePause}>
           {isGameOver ? 'Restart' :(isPaused ? 'Resume' : 'Pause')}
           </button>
-          <button color="primary" onClick={handleReset}>
-            Reset Game
-          </button>
-        </div>
+          </div>
 
         <div className="canvas-container" ref={canvasContaierRef}>
         <canvas
