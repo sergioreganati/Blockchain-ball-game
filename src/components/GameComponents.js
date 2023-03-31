@@ -1,6 +1,8 @@
 //components
 import React from 'react';
+//import imageURL from '../App.jsx'
 
+const imageURL = '../public/cib-ethereum2.svg';
 
 export const GameComponents = (props) => {
     return (    
@@ -16,8 +18,7 @@ export const GameComponents = (props) => {
 //}
 export function drawBall(context, ball) {
     const ballIcon = new Image();
-
-ballIcon.src = '../public/cib-ethereum2.svg';
+    ballIcon.src=imageURL
     context.drawImage(ballIcon, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
 }
   

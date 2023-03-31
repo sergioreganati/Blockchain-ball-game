@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import CanvasComponent from './components/CanvasComponent.jsx';
 import './App.css';
-
+const imageURL = ('./assets/cib-ethereum2.svg');
 
 function App() {
+  
+
 
   // Prevent scrolling on mobile
   function preventTouchMove(event) {
